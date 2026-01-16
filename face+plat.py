@@ -1,11 +1,11 @@
-from rapidocr import RapidOCR
 from ultralytics import YOLO
 from insightface.app import FaceAnalysis
+from fast_plate_ocr import LicensePlateRecognizer
 import cv2
 import os
 import numpy as np
 
-ocr_engine = RapidOCR()
+m = LicensePlateRecognizer('cct-xs-v1-global-model')
 yolo_model = YOLO("best.pt")
 app = FaceAnalysis(name="buffalo_s")
 app.prepare(ctx_id=0)
@@ -19,12 +19,11 @@ def face_recog(face_img):
 
 
 def ocr_plate(plate_img):
-    img_rgb = cv2.cvtColor(plate_img, cv2.COLOR_BGR2GRAY)
-    out = ocr_engine(img_rgb)
-    if out is None or len(out.txts) == 0:
-        return ""
-    text = "".join(out.txts)
-    return text.replace(" ", "")
+    #img_rgb = cv2.cvtColor(plate_img, cv2.COLOR_BGR2GRAY)
+    alpr_result = m.run(plate_img)
+    for r in alpr_result:
+        plate_number = r
+    return plate_number
 
 
 def getInfoUsingModel(img_path):
@@ -49,8 +48,8 @@ def getInfoUsingModel(img_path):
 
     return identity, plate_text
 
-img_path_1 = "./photo/zaidan2.jpeg"
-img_path_2 = "./photo/fajar1.jpeg"
+img_path_1 = "./photo/zaidan1.jpeg"
+img_path_2 = "./photo/fajar2.jpeg"
 
 face_result_1, plate_result_1 = getInfoUsingModel(img_path_1)
 print("----------- Scan Pertama --------------")
